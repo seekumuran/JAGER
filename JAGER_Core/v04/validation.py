@@ -1,3 +1,6 @@
+from .errors import InvalidActionError
+
+
 REQUIRED_INPUTS = {
     "cpu_load",
     "memory_load",
@@ -8,34 +11,47 @@ REQUIRED_INPUTS = {
 
 
 def validate_inputs(inputs):
-    if set(inputs.keys()) != REQUIRED_INPUTS:
-        return False
+    if not isinstance(inputs, dict):
+        raise InvalidActionError(
+            "Inputs must be a dictionary."
+        )
 
-    if not 0 <= inputs["cpu_load"] <= 100:
-        return False
+    missing = REQUIRED_INPUTS - set(inputs)
 
-    if not 0 <= inputs["memory_load"] <= 100:
-        return False
+    if missing:
+        raise InvalidActionError(
+            f"Missing inputs: {sorted(missing)}"
+        )
 
-    if not 0 <= inputs["ipc_intensity"] <= 100:
-        return False
+    cpu = inputs["cpu_load"]
+    memory = inputs["memory_load"]
+    processes = inputs["num_processes"]
+    threads = inputs["num_threads"]
+    ipc = inputs["ipc_intensity"]
 
-    if inputs["num_processes"] < 0:
-        return False
+    if not 0 <= cpu <= 100:
+        raise InvalidActionError(
+            "cpu_load must be between 0 and 100."
+        )
 
-    if inputs["num_threads"] < 0:
-        return False
+    if not 0 <= memory <= 100:
+        raise InvalidActionError(
+            "memory_load must be between 0 and 100."
+        )
 
-    if not isinstance(
-        inputs["num_processes"],
-        int,
-    ):
-        return False
+    if not 0 <= ipc <= 100:
+        raise InvalidActionError(
+            "ipc_intensity must be between 0 and 100."
+        )
 
-    if not isinstance(
-        inputs["num_threads"],
-        int,
-    ):
-        return False
+    if not isinstance(processes, int) or processes < 0:
+        raise InvalidActionError(
+            "num_processes must be a non-negative integer."
+        )
+
+    if not isinstance(threads, int) or threads < 0:
+        raise InvalidActionError(
+            "num_threads must be a non-negative integer."
+        )
 
     return True
