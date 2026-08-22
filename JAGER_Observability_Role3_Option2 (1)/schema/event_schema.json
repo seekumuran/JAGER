@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "JAGER Observability Event",
+  "description": "Minimal structured event emitted along the JAGER enforcement path (Agent Runtime Interface -> Capability Manager -> Policy Engine -> Information-Flow Controller -> Resource Governor -> Adapter -> Provenance Engine). This schema is consumed by the observability viewer only; it does not itself make security decisions (see SRS Section 10.2, 5.1).",
+  "type": "object",
+  "required": [
+    "timestamp",
+    "event_type",
+    "trace_id",
+    "agent_id",
+    "operation",
+    "resource",
+    "decision",
+    "reason"
+  ],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC ISO-8601 timestamp of when the enforcement path recorded this event."
+    },
+    "event_type": {
+      "type": "string",
+      "description": "Category of event. 'security_decision' covers the Policy Engine / Resource Governor outcome. Future components may emit other types (e.g. 'lifecycle', 'budget_update').",
+      "examples": ["security_decision"]
+    },
+    "trace_id": {
+      "type": "string",
+      "description": "Unique identifier for the protected operation, per NFR-04. Must be linkable end-to-end from agent request to adapter execution to result."
+    },
+    "parent_trace_id": {
+      "type": ["string", "null"],
+      "description": "Optional trace ID of a causally-related parent operation (e.g. a child-agent spawn or a multi-step request)."
+    },
+    "agent_id": {
+      "type": "string",
+      "description": "Identity of the requesting agent, per FR-01 agent registration."
+    },
+    "operation": {
+      "type": "string",
+      "description": "The verb/operation requested, e.g. READ, AGGREGATE, EXPORT, WRITE, SPAWN.",
+      "examples": ["READ", "AGGREGATE", "EXPORT"]
+    },
+    "resource": {
+      "type": "string",
+      "description": "The resource or resource pattern the operation targets, e.g. a dataset, field, or tool name."
+    },
+    "decision": {
+      "type": "string",
+      "description": "Outcome of policy/resource evaluation, per Section 10.2 of the SRS.",
+      "enum": ["ALLOW", "DENY", "MODIFY", "THROTTLE", "TERMINATE"]
+    },
+    "reason": {
+      "type": "string",
+      "description": "Human-readable explanation of the decision, per FR-21 / NFR-08."
+    },
+    "reason_code": {
+      "type": "string",
+      "description": "Machine-readable reason code, per FR-21.",
+      "examples": [
+        "CAPABILITY_AND_POLICY_MATCH",
+        "MISSING_CAPABILITY",
+        "CLASSIFICATION_VIOLATION",
+        "POLICY_DENY_RULE",
+        "BUDGET_EXCEEDED"
+      ]
+    },
+    "policy_version": {
+      "type": "string",
+      "description": "Version of the policy definition that produced this decision, per SR-09."
+    },
+    "capability": {
+      "type": "string",
+      "description": "The capability string checked for this request, e.g. READ:sales."
+    },
+    "data_classification": {
+      "type": "string",
+      "description": "Classification of the resource involved, per FR-07.",
+      "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "PII"]
+    },
+    "latency_ms": {
+      "type": "number",
+      "description": "Enforcement-path latency for this decision in milliseconds, excluding downstream adapter execution time (NFR-01, NFR-02)."
+    },
+    "component": {
+      "type": "string",
+      "description": "The JAGER component that emitted this event, e.g. policy_engine, resource_governor, exasol_adapter.",
+      "examples": ["policy_engine", "capability_manager", "resource_governor", "provenance_engine"]
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Free-form additional context (e.g. row counts, budget remaining). Not relied upon by the viewer's core display.",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
