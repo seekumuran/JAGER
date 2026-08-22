@@ -1,33 +1,52 @@
+from collections import defaultdict
+
+
 class Metrics:
+
     def __init__(self):
-        self.values = {
-            "experiments": 0,
-            "allowed": 0,
-            "denied": 0,
-            "normal": 0,
-            "degraded": 0,
-            "failed": 0,
-            "discoveries": 0,
-        }
+        self.counters = defaultdict(int)
+        self.values = defaultdict(list)
 
-    def record_decision(self, allowed):
-        key = "allowed" if allowed else "denied"
-        self.values[key] += 1
+    def increment(
+        self,
+        name,
+        amount=1,
+    ):
+        self.counters[name] += amount
 
-    def record_status(self, status):
-        self.values[status.lower()] += 1
-        self.values["experiments"] += 1
+    def observe(
+        self,
+        name,
+        value,
+    ):
+        self.values[name].append(
+            float(value)
+        )
 
-        if status == "FAILED":
-            self.values["discoveries"] += 1
+    def get(self, name):
+        return self.counters.get(
+            name,
+            0,
+        )
 
-    def snapshot(self):
-        return dict(self.values)
+    def average(self, name):
+        values = self.values.get(
+            name,
+            [],
+        )
 
-    def discovery_rate(self):
-        experiments = self.values["experiments"]
-
-        if experiments == 0:
+        if not values:
             return 0.0
 
-        return self.values["discoveries"] / experiments
+        return sum(values) / len(values)
+
+    def summary(self):
+        return {
+            "counters": dict(
+                self.counters
+            ),
+            "averages": {
+                key: self.average(key)
+                for key in self.values
+            },
+        }
