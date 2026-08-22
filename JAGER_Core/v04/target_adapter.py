@@ -1,10 +1,13 @@
-class TargetAdapter:
-    """
-    Generic interface between JÄGER and a target.
+from .target import Target
 
-    A real Linux target, sandbox, simulator,
-    or external system can implement this
-    interface without changing the hunter.
+
+class TargetAdapter(Target):
+    """
+    Compatibility layer for targets that already expose
+    an observe() method.
+
+    This keeps the existing adapter API while making it
+    conform to JÄGER's target abstraction.
     """
 
     def observe(self, **inputs):
@@ -14,8 +17,11 @@ class TargetAdapter:
 
 
 class CallableTargetAdapter(TargetAdapter):
+
     def __init__(self, function):
         self.function = function
 
     def observe(self, **inputs):
-        return self.function(**inputs)
+        return self.function(
+            **inputs
+        )
