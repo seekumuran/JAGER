@@ -1,0 +1,13 @@
+{
+  "name": "jager",
+  "version": "0.4",
+  "environment": "development",
+  "debug": false,
+  "data_directory": "data",
+  "max_iterations": 10,
+  "max_failures": 3,
+  "max_actions": 100,
+  "max_risk": 1.0,
+  "target_score": null,
+  "metadata": {}
+}
